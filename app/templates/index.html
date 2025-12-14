@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Codebase RAG Explorer</title>
+</head>
+<body>
+    <h1>Codebase RAG Explorer</h1>
+    <form method="post" action="/analyze">
+        <label>GitHub Repository URL:</label>
+        <input type="text" name="repo_url" style="width:400px;" required />
+        <button type="submit">Analyze</button>
+    </form>
+
+    {% if analysis %}
+        <h2>Result</h2>
+        <pre>{{ analysis }}</pre>
+    {% endif %}
+</body>
+</html>
