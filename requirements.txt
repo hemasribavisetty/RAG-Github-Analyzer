@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+gitpython
+openai>=1.0.0
+tiktoken
+chromadb
+langchain
+langchain-community
