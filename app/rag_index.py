@@ -139,10 +139,10 @@ Context:
 Question:
 {question}
 
-Answer clearly and mention file paths when helpful.
+Provide a complete and detailed answer without cutting off. Answer clearly and mention file paths when helpful.
 """
 
-    answer = generate_text(prompt)
+    answer = generate_text(prompt, max_new_tokens=4000)
     return answer
 
 def summarize_repo_structure(files: List[Dict]) -> str:
@@ -177,9 +177,11 @@ Tasks:
 5. Always reference file paths explicitly when you mention them.
 
 If you feel some parts are missing because not all files are shown, state that clearly.
+
+Provide a complete and detailed analysis without cutting off.
 """
 
     print(">>> Calling HF generate_text for summarize_repo_structure", flush=True)
-    summary = generate_text(prompt, max_new_tokens=500)
+    summary = generate_text(prompt, max_new_tokens=4000)
     print(">>> HF generate_text returned for summarize_repo_structure", flush=True)
     return summary
