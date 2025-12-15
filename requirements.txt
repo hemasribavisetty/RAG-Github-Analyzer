@@ -3,6 +3,13 @@ uvicorn[standard]
 jinja2
 python-multipart
 gitpython
+openai>=1.0.0
+tiktoken
 chromadb
-huggingface_hub
+langchain
+langchain-community
 python-dotenv
+python-dotenv
+python-dotenv
+python-dotenv
+requests
