@@ -5,13 +5,29 @@
 </head>
 <body>
     <h1>Codebase RAG Explorer</h1>
+
+    <h2>1. Analyze a GitHub repository</h2>
     <form method="post" action="/analyze">
         <label>GitHub Repository URL:</label>
         <input type="text" name="repo_url" style="width:400px;" required />
         <button type="submit">Analyze</button>
     </form>
 
+    {% if repo_id %}
+        <hr>
+        <h2>2. Ask questions about this repo</h2>
+        <p><strong>Repo:</strong> {{ repo_url }}</p>
+        <p><strong>Repo ID:</strong> {{ repo_id }}</p>
+        <form method="post" action="/ask">
+            <input type="hidden" name="repo_id" value="{{ repo_id }}" />
+            <label>Your question:</label><br>
+            <textarea name="question" rows="3" cols="80" required></textarea><br>
+            <button type="submit">Ask</button>
+        </form>
+    {% endif %}
+
     {% if analysis %}
+        <hr>
         <h2>Result</h2>
         <pre>{{ analysis }}</pre>
     {% endif %}
