@@ -10,7 +10,7 @@ if not HF_API_KEY:
     raise RuntimeError("HF_API_KEY not set in environment or .env")
 
 # 🔹 Chat model – use the one you already tested and know works
-CHAT_MODEL = "MiniMaxAI/MiniMax-M2"  # this is from your working script
+CHAT_MODEL = "meta-llama/Llama-3.1-8B-Instruct"  # this is from your working script
 
 # 🔹 Embedding model – standard sentence-transformers model
 EMBED_MODEL = "sentence-transformers/all-mpnet-base-v2"

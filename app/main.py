@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from .code_utils import clone_repo, list_code_files
+from .code_utils import clone_repo, list_repo_files, get_repo_structure
 from .rag_index import build_repo_index, answer_question, summarize_repo_structure
 
 app = FastAPI()
@@ -39,7 +39,8 @@ async def analyze_repo(request: Request, repo_url: str = Form(...)):
     rid = repo_id_from_url(repo_url)
 
     repo_path = clone_repo(repo_url)
-    files = list_code_files(repo_path)
+    files = list_repo_files(repo_path)
+    repo_structure = get_repo_structure(repo_path)
 
     build_repo_index(rid, files)
     structure_summary = summarize_repo_structure(files)
@@ -48,6 +49,7 @@ async def analyze_repo(request: Request, repo_url: str = Form(...)):
         "repo_url": repo_url,
         "files": files,
         "structure_summary": structure_summary,
+        "repo_structure": repo_structure,
     }
 
     return templates.TemplateResponse(
@@ -57,6 +59,7 @@ async def analyze_repo(request: Request, repo_url: str = Form(...)):
             "analysis": structure_summary,
             "repo_id": rid,
             "repo_url": repo_url,
+            "repo_structure": repo_structure,
         },
     )
 
@@ -70,6 +73,7 @@ async def ask_about_repo(
     answer = answer_question(repo_id, question)
     repo_data = REPO_STATE.get(repo_id)
     repo_url = repo_data["repo_url"] if repo_data else "Unknown"
+    repo_structure = repo_data.get("repo_structure", "") if repo_data else ""
 
     return templates.TemplateResponse(
         "index.html",
@@ -78,5 +82,6 @@ async def ask_about_repo(
             "analysis": answer,
             "repo_id": repo_id,
             "repo_url": repo_url,
+            "repo_structure": repo_structure,
         },
     )

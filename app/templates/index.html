@@ -1,35 +1,124 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Codebase RAG Explorer</title>
+    <title>GitHub RAG Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+        }
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 30px 0;
+        }
+        pre {
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .repo-info {
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .structure-section {
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Codebase RAG Explorer</h1>
+    <h1>GitHub Repository RAG Analyzer</h1>
 
-    <h2>1. Analyze a GitHub repository</h2>
+    <h2>1. Analyze a GitHub Repository</h2>
     <form method="post" action="/analyze">
-        <label>GitHub Repository URL:</label>
-        <input type="text" name="repo_url" style="width:400px;" required />
-        <button type="submit">Analyze</button>
+        <label for="repo_url">GitHub Repository URL:</label>
+        <input type="text" id="repo_url" name="repo_url" style="width:100%;" placeholder="https://github.com/user/repo" required />
+        <button type="submit">Analyze Repository</button>
     </form>
 
     {% if repo_id %}
-        <hr>
-        <h2>2. Ask questions about this repo</h2>
-        <p><strong>Repo:</strong> {{ repo_url }}</p>
-        <p><strong>Repo ID:</strong> {{ repo_id }}</p>
+        <div class="repo-info">
+            <h2>Repository Information</h2>
+            <p><strong>Repo URL:</strong> {{ repo_url }}</p>
+            <p><strong>Repo ID:</strong> {{ repo_id }}</p>
+        </div>
+
+        {% if repo_structure %}
+        <div class="structure-section">
+            <h2>Repository Structure</h2>
+            <pre>{{ repo_structure }}</pre>
+        </div>
+        {% endif %}
+
+        <h2>2. Ask Questions About This Repository</h2>
         <form method="post" action="/ask">
             <input type="hidden" name="repo_id" value="{{ repo_id }}" />
-            <label>Your question:</label><br>
-            <textarea name="question" rows="3" cols="80" required></textarea><br>
-            <button type="submit">Ask</button>
+            <label for="question">Your Question:</label><br>
+            <textarea id="question" name="question" rows="4" cols="80" placeholder="Ask anything about the repository..." required></textarea><br>
+            <button type="submit">Ask Question</button>
         </form>
     {% endif %}
 
     {% if analysis %}
-        <hr>
-        <h2>Result</h2>
-        <pre>{{ analysis }}</pre>
+        <div class="structure-section">
+            <h2>Analysis Result</h2>
+            <pre>{{ analysis }}</pre>
+        </div>
     {% endif %}
 </body>
 </html>

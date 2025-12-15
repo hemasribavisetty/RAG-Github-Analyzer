@@ -16,6 +16,17 @@ def read_file(path: str) -> str:
         return f.read()
 
 
+def is_text_file(path: str) -> bool:
+    try:
+        with open(path, "rb") as f:
+            chunk = f.read(1024)
+            if b'\x00' in chunk:
+                return False
+        return True
+    except:
+        return False
+
+
 def chunk_text(text: str, max_lines: int = 120) -> List[str]:
     """
     Simple line-based chunking. You can improve this later to be token-based.
@@ -40,7 +51,7 @@ def build_repo_index(repo_id: str, files: List[Dict]) -> str:
     """
     Build or rebuild a Chroma collection for a repo.
     repo_id: unique id string for the repo
-    files: list of file metadata from list_code_files
+    files: list of file metadata from list_repo_files
     """
     collection_name = f"repo_{repo_id}"
 
@@ -57,6 +68,8 @@ def build_repo_index(repo_id: str, files: List[Dict]) -> str:
     metadatas = []
 
     for file_info in files:
+        if not is_text_file(file_info["full_path"]):
+            continue
         content = read_file(file_info["full_path"])
         chunks = chunk_text(content, max_lines=120)
         rel_path = file_info["relative_path"]
@@ -134,11 +147,11 @@ Answer clearly and mention file paths when helpful.
 
 def summarize_repo_structure(files: List[Dict]) -> str:
     """
-    Take the list of code files and ask the LLM to infer the architecture.
+    Take the list of files and ask the LLM to infer the architecture.
     We limit to the first N files to keep the prompt small.
     """
     if not files:
-        return "No code files found in this repository."
+        return "No files found in this repository."
 
     # Limit to first 40 files to avoid giant prompts
     MAX_FILES = 40
@@ -147,9 +160,9 @@ def summarize_repo_structure(files: List[Dict]) -> str:
     file_list_text = "\n".join(f["relative_path"] for f in limited_files)
 
     prompt = f"""
-You are analyzing a project's code structure for a student.
+You are analyzing a project's structure for a student.
 
-Here is a (possibly partial) list of code files in the project (up to {MAX_FILES} files):
+Here is a (possibly partial) list of files in the project (up to {MAX_FILES} files):
 
 {file_list_text}
 
