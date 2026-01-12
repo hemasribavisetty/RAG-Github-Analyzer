@@ -48,6 +48,9 @@ coverage.xml
 *.cover
 *.py.cover
 .hypothesis/
+
+# Chroma DB (auto-generated vector database)
+chroma_db/
 .pytest_cache/
 cover/
 
