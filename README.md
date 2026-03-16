@@ -1,4 +1,6 @@
-# RAG GitHub Repository Analyzer
+# RAG GitHub Repository Analyzer  
+
+## LIVE: https://rag-github-analyzer.onrender.com/
 
 ## Overview
 The RAG GitHub Analyzer is an advanced, interactive tool designed to help users better understand GitHub repositories by leveraging **Retrieval-Augmented Generation (RAG)** techniques. It is built to analyze repositories, understand their structure, and answer any questions users have about them. By combining powerful backend code with a fast and intuitive interface, the tool allows users to easily explore and comprehend the contents of any GitHub repository, even across multiple programming languages and technical stacks.
