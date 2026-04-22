@@ -43,9 +43,9 @@ def repo_id_from_url(url: str) -> str:
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
+        request=request,
+        name="index.html",
+        context={
             "analysis": None,
             "repo_id": None,
             "repo_url": None,
@@ -81,9 +81,9 @@ async def analyze_repo(request: Request, repo_url: str = Form(...)):
     }
 
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
+        request=request,
+        name="index.html",
+        context={
             "analysis": f"Analysis started. Connecting to live stream...",
             "repo_id": rid,
             "repo_url": repo_url,
@@ -119,9 +119,9 @@ async def ask_about_repo(
     chat_history = repo_data.get("chat_history", []) if repo_data else []
 
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
+        request=request,
+        name="index.html",
+        context={
             "analysis": answer,
             "repo_id": repo_id,
             "repo_url": repo_url,
