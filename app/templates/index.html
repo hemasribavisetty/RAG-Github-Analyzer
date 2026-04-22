@@ -1,195 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>GitHub RAG Analyzer</title>
+    <meta charset="UTF-8">
+    <title>GitAnalyze - Distributed RAG Engine</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #121212;
-            color: #ffffff;
-            display: flex;
-            height: 100vh;
-        }
-        .download-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: #28a745;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-        }
-        .download-btn:hover {
-            background-color: #218838;
-        }
-        .container {
-            display: flex;
-            width: 100%;
-        }
-        .left-panel {
-            width: 40%;
-            padding: 20px;
-            border-right: 1px solid #333;
-            overflow-y: auto;
-        }
-        .right-panel {
-            width: 60%;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        h1 {
-            color: #ffffff;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        h2 {
-            color: #ffffff;
-            border-bottom: 2px solid #333;
-            padding-bottom: 5px;
-        }
-        form {
-            background-color: #1e1e1e;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            box-sizing: border-box;
-            background-color: #2a2a2a;
-            color: #ffffff;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .repo-info {
-            background-color: #1e1e1e;
-            padding: 15px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            margin-bottom: 20px;
-        }
-        .structure-section {
-            background-color: #1e1e1e;
-            padding: 15px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            margin-bottom: 20px;
-        }
-        .chat-section {
-            flex: 1;
-            background-color: #1e1e1e;
-            padding: 15px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            overflow-y: auto;
-            max-height: 70vh;
-        }
-        .chat-message {
-            margin-bottom: 15px;
-        }
-        .question {
-            font-weight: bold;
-            color: #007bff;
-        }
-        .answer {
-            margin-left: 10px;
-            color: #cccccc;
-        }
-        .answer pre {
-            background-color: #2a2a2a;
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #555;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            color: #cccccc;
-            margin: 5px 0 0 0;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 2em auto; padding: 0 1em; line-height: 1.6; background-color: #f9f9f9; color: #333; }
+        .box { background: white; border: 1px solid #ddd; padding: 1.5em; margin-bottom: 1.5em; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 0.5em; }
+        .chat-entry { margin-bottom: 1.5em; border-left: 4px solid #3498db; padding-left: 1em; }
+        .user { font-weight: bold; color: #2c3e50; }
+        .bot { color: #2980b9; margin-top: 0.5em; white-space: pre-wrap; }
+        #status-indicator { font-weight: bold; padding: 1em; border-radius: 6px; margin-bottom: 1em; display: none; }
+        .loading { background: #e1f5fe; color: #01579b; border: 1px solid #b3e5fc; }
+        .finished { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .pulse { animation: pulse-animation 2s infinite; }
+        @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        input[type="text"] { padding: 0.8em; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; }
+        button { padding: 0.8em 1.5em; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
+    <!-- In a production environment, this would be the compiled JS from TypeScript -->
+    <script src="/static/js/client.js" defer></script>
 </head>
 <body>
-    {% if repo_id %}
-        <a href="/download/{{ repo_id }}" class="download-btn">Download Conversation</a>
-    {% endif %}
-    <div class="container">
-        <div class="left-panel">
-            <h1>GitHub Repository RAG Analyzer</h1>
+    <h1>GitAnalyze 🚀</h1>
+    <p>Distributed RAG Code Intelligence Engine (Python + TypeScript + Redis)</p>
 
-            <h2>Analyze a GitHub Repository</h2>
-            <form method="post" action="/analyze">
-                <label for="repo_url">GitHub Repository URL:</label>
-                <input type="text" id="repo_url" name="repo_url" placeholder="https://github.com/user/repo" required />
-                <button type="submit">Analyze Repository</button>
-            </form>
-
-            {% if repo_url %}
-                <div class="repo-info">
-                    <h2>Repository Information</h2>
-                    <p><strong>Repo URL:</strong> {{ repo_url }}</p>
-                </div>
-
-                {% if repo_structure %}
-                <div class="structure-section">
-                    <h2>Repository Structure</h2>
-                    <pre>{{ repo_structure }}</pre>
-                </div>
-                {% endif %}
-            {% endif %}
-        </div>
-
-        <div class="right-panel">
-            {% if repo_id %}
-                <h2>Ask Questions About This Repository</h2>
-                <form method="post" action="/ask">
-                    <input type="hidden" name="repo_id" value="{{ repo_id }}" />
-                    <label for="question">Your Question:</label><br>
-                    <textarea id="question" name="question" rows="4" cols="80" placeholder="Ask anything about the repository..." required onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); this.form.submit();}"></textarea><br>
-                    <button type="submit">Ask Question</button>
-                </form>
-
-                <div class="chat-section">
-                    <h3>Chat History</h3>
-                    {% for entry in chat_history %}
-                    <div class="chat-message">
-                        <div class="question">Q: {{ entry.question }}</div>
-                        <div class="answer">
-                            <pre>A: {{ entry.answer }}</pre>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
+    <div class="box">
+        <form action="/analyze" method="post">
+            <label style="display:block; margin-bottom: 0.5em; font-weight:bold;">GitHub Repository URL:</label>
+            <div style="display:flex; gap: 10px;">
+                <input type="text" name="repo_url" value="{{ repo_url or '' }}" style="flex-grow:1" placeholder="https://github.com/user/repo" required>
+                <button type="submit">Analyze</button>
+            </div>
+        </form>
     </div>
+
+    <div id="status-indicator"></div>
+
+    {% if analysis %}
+    <div class="box">
+        <h3 style="margin-top:0">System Response</h3>
+        <div id="analysis-text">{{ analysis | safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if repo_id %}
+    <div class="box">
+        <h3>Ask a Question</h3>
+        <form action="/ask" method="post" style="display:flex; gap: 10px;">
+            <input type="hidden" name="repo_id" value="{{ repo_id }}">
+            <input type="text" name="question" placeholder="e.g. How is the database initialized?" style="flex-grow:1" required>
+            <button type="submit">Query Engine</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <script>
+        // Use the TypeScript-defined global initializer
+        window.onload = () => {
+            const repoId = "{{ repo_id }}";
+            if (repoId && repoId !== "None") {
+                const statusDiv = document.getElementById('status-indicator');
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'loading pulse';
+                statusDiv.innerText = "⏳ Connecting to TypeScript-managed stream...";
+                
+                // Fallback if the JS isn't compiled: the logic we wrote in client.ts
+                if (window.startGitAnalyzeStream) {
+                    window.startGitAnalyzeStream(repoId, 'status-indicator');
+                } else {
+                    console.warn("TypeScript client JS not found. Ensure tsc is run.");
+                }
+            }
+        };
+    </script>
 </body>
 </html>

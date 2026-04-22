@@ -1,27 +1,46 @@
 import hashlib
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, PlainTextResponse
+import json
+import asyncio
+import requests
+from fastapi import FastAPI, Request, Form, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from rq.job import Job
 
-from .code_utils import clone_repo, list_repo_files, get_repo_structure
-from .rag_index import build_repo_index, answer_question, summarize_repo_structure
+from .code_utils import list_repo_files, get_repo_structure
+from .rag_index import answer_question, summarize_repo_structure
+from .worker_tasks import enqueue_repo_analysis, redis_conn
 
 app = FastAPI()
-@app.get("/ping")
-async def ping():
-    return {"status": "ok"}
 
 templates = Jinja2Templates(directory="app/templates")
 
-# Simple in memory store
+# Simple in memory store for session data
 REPO_STATE = {}
 
+# Manager to keep track of active WebSocket connections
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: dict[str, WebSocket] = {}
+
+    async def connect(self, repo_id: str, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections[repo_id] = websocket
+
+    def disconnect(self, repo_id: str):
+        if repo_id in self.active_connections:
+            del self.active_connections[repo_id]
+
+    async def send_update(self, repo_id: str, message: str):
+        if repo_id in self.active_connections:
+            await self.active_connections[repo_id].send_text(json.dumps({"status": "update", "message": message}))
+
+manager = ConnectionManager()
 
 def repo_id_from_url(url: str) -> str:
     return hashlib.sha1(url.encode("utf-8")).hexdigest()[:10]
 
-
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse(
         "index.html",
@@ -31,63 +50,61 @@ async def home(request: Request):
             "repo_id": None,
             "repo_url": None,
             "chat_history": [],
+            "job_id": None
         },
     )
 
+@app.websocket("/ws/{repo_id}")
+async def websocket_endpoint(websocket: WebSocket, repo_id: str):
+    await manager.connect(repo_id, websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(repo_id)
 
-@app.post("/analyze", response_class=HTMLResponse)
+@app.post("/analyze-progress/{repo_id}")
+async def report_progress(repo_id: str, data: dict):
+    """Internal endpoint for workers to report progress to the UI via websocket."""
+    await manager.send_update(repo_id, data.get("message", ""))
+    return {"status": "ok"}
+
+@app.post("/analyze")
 async def analyze_repo(request: Request, repo_url: str = Form(...)):
     rid = repo_id_from_url(repo_url)
-
-    repo_path = clone_repo(repo_url)
-    files = list_repo_files(repo_path)
-    repo_structure = get_repo_structure(repo_path)
-
-    build_repo_index(rid, files)
-    structure_summary = summarize_repo_structure(files)
+    job_id = enqueue_repo_analysis(repo_url, rid)
 
     REPO_STATE[rid] = {
         "repo_url": repo_url,
-        "files": files,
-        "structure_summary": structure_summary,
-        "repo_structure": repo_structure,
         "chat_history": [],
+        "job_id": job_id
     }
 
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
-            "analysis": structure_summary,
+            "analysis": f"Analysis started. Connecting to live stream...",
             "repo_id": rid,
             "repo_url": repo_url,
-            "repo_structure": repo_structure,
+            "job_id": job_id,
             "chat_history": [],
         },
     )
 
+@app.get("/status/{job_id}")
+async def get_status(job_id: str):
+    try:
+        job = Job.fetch(job_id, connection=redis_conn)
+        return {
+            "job_id": job_id,
+            "status": job.get_status(),
+            "result": job.result if job.is_finished else None
+        }
+    except Exception as e:
+        return JSONResponse(status_code=404, content={"error": str(e)})
 
-@app.get("/download/{repo_id}", response_class=PlainTextResponse)
-async def download_chat(repo_id: str):
-    repo_data = REPO_STATE.get(repo_id)
-    if not repo_data:
-        return "No conversation found for this repository."
-
-    chat_history = repo_data.get("chat_history", [])
-    if not chat_history:
-        return "No chat history available."
-
-    content = f"Repository: {repo_data['repo_url']}\n\n"
-    for i, entry in enumerate(chat_history, 1):
-        content += f"Q{i}: {entry['question']}\n"
-        content += f"A{i}: {entry['answer']}\n\n"
-
-    response = PlainTextResponse(content)
-    response.headers["Content-Disposition"] = "attachment; filename=conversation.txt"
-    return response
-
-
-@app.post("/ask", response_class=HTMLResponse)
+@app.post("/ask")
 async def ask_about_repo(
     request: Request,
     repo_id: str = Form(...),
@@ -97,8 +114,8 @@ async def ask_about_repo(
     repo_data = REPO_STATE.get(repo_id)
     if repo_data:
         repo_data["chat_history"].append({"question": question, "answer": answer})
+    
     repo_url = repo_data["repo_url"] if repo_data else "Unknown"
-    repo_structure = repo_data.get("repo_structure", "") if repo_data else ""
     chat_history = repo_data.get("chat_history", []) if repo_data else []
 
     return templates.TemplateResponse(
@@ -108,7 +125,6 @@ async def ask_about_repo(
             "analysis": answer,
             "repo_id": repo_id,
             "repo_url": repo_url,
-            "repo_structure": repo_structure,
             "chat_history": chat_history,
         },
     )
